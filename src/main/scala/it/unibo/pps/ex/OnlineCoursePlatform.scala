@@ -90,10 +90,10 @@ end OnlineCoursePlatform
 
 object OnlineCoursePlatform:
 
-  private var catalog: Sequence[Course] = Sequence.Nil()
-  private var enrollments: Sequence[(String,String)] = Sequence.Nil()
-
   private case class OnlineCoursePlatformImpl() extends OnlineCoursePlatform {
+
+    private var catalog: Sequence[Course] = Sequence.Nil()
+    private var enrollments: Sequence[(String, String)] = Sequence.Nil()
     /**
      * Adds a new course to the platform's catalog.
      * @param course The course to add.
@@ -113,7 +113,7 @@ object OnlineCoursePlatform:
      * @param courseId The ID of the course to retrieve.
      * @return An Optional containing the course if found, otherwise Optional.empty.
      */
-  override def getCourse(courseId: String): Optional[Course] = catalog.find(c => courseId == c.courseId)
+    override def getCourse(courseId: String): Optional[Course] = catalog.find(c => courseId == c.courseId)
 
     /**
      * Removes a course from the platform's catalog.
@@ -141,8 +141,10 @@ object OnlineCoursePlatform:
      * @param courseId  The ID of the course to enroll in.
      *                  Fails silently if the course doesn't exist.
      */
-    override def enrollStudent(studentId: String, courseId: String): Unit =
-      enrollments = Cons((studentId, courseId), enrollments)
+    override def enrollStudent(studentId: String, courseId: String): Unit = {
+      if isCourseAvailable(courseId) then
+        enrollments = Cons((studentId, courseId), enrollments)
+    }
 
     /**
      * Unenrolls a student from a specific course.
@@ -151,7 +153,7 @@ object OnlineCoursePlatform:
      * @param courseId  The ID of the course to unenroll from.
      */
     override def unenrollStudent(studentId: String, courseId: String): Unit =
-      enrollments = enrollments.filter((eS, eC) => eS == studentId && eC == courseId)
+      enrollments = enrollments.filter((eS, eC) => !(eS == studentId && eC == courseId))
 
     /**
      * Retrieves all courses a specific student is enrolled in.
@@ -172,7 +174,7 @@ object OnlineCoursePlatform:
      * @return true if the student is enrolled, false otherwise.
      */
     override def isStudentEnrolled(studentId: String, courseId: String): Boolean =
-      enrollments.contains(studentId, courseId)
+      enrollments.contains((studentId, courseId))
 }
   // Factory method for creating an empty platform instance
   def apply(): OnlineCoursePlatform = OnlineCoursePlatformImpl() // Fill Here!
